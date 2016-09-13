@@ -50,6 +50,7 @@ def process(url):
         wiki_links_page = requests.get(links_url)
         if not wiki_links_page.ok:
             return
-        
+        wiki_links_html = bs4.BeautifulSoup(wiki_links_page.content, 'lxml')
+        link_count = len(wiki_links_html.find(id = 'mw-whatlinkshere-list').find_all('li'))
         
         
