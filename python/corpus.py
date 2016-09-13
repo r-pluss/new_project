@@ -13,7 +13,9 @@ if not wiki_page.ok:
 html = bs4.BeautifulSoup(wiki_page.content, 'lxml')
 for item in hmtl.find(id = 'mw-whatlinkshere-list').find_all('li'):
     link = item.find('a').get('href')
-    process(link)
+    data = process(link)
+    if data is not None:
+        #save the results
     
     
 def process(url):
