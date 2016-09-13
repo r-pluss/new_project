@@ -42,8 +42,13 @@ def process(url):
         wiki_link = html.find(class_ = 'wikibase-entityview-side').find('a', hreflang = 'en')['href']
         #try to generate a ranking index value
         #number of inter-wiki links will be used as a proxy for notoriety
-        _wiki_page = requests.get(wiki_link)
-        if not _wiki_page.ok:
+        wiki_page_main = requests.get(wiki_link)
+        if not wiki_page_main.ok:
+            return
+        main_html = bs4.BeautifulSoup(wiki_page_main.content, 'lxml')
+        links_url = 'https://en.wikipedia.org' + main.html.find(id = 't-whatlinkshere').find('a')['href'] + "?limit=2000"
+        wiki_links_page = requests.get(links_url)
+        if not wiki_links_page.ok:
             return
         
         
