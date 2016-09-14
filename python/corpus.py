@@ -1,6 +1,7 @@
 #creating a large body of data from existing open data sources 
 
 import bs4
+import datetime
 #import redis
 import requests
 
@@ -62,6 +63,19 @@ def process(url):
 def persist(data):
     #further process the data and, if it meets criteria, save to redis keystore
     pass
+
+def convert_date(date):
+    formats = ['%d %B %Y']
+    for f in formats:
+        try:
+            d = datetime.datetime.strptime(date, f)
+            return datetime.date(d.year, d.month, d.day)
+        except ValueError:
+            pass
+    raise ValueError('{0} is not in accepted format.'.format(date))
+    
+def lifespan_days(born, died):
+    return (died - born).days
 
 
 
