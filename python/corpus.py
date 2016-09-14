@@ -15,6 +15,11 @@ def process(url):
         death_date = html.find(id = 'P570').find(class_ = 'wikibase-snakview-value').contents[0]
     except AttributeError:
         return
+    #get the birthdate
+    try:
+        birthdate = html.find(id = 'P569').find(class_ = 'wikibase-snakview-value').contents[0]
+    except AttributeError:
+        return
     #get the common name for the person
     who_is = html.find(class_ = 'wikibase-title-label').text.strip()
     #get the general description
@@ -46,6 +51,7 @@ def process(url):
     link_count = len(wiki_links_html.find(id = 'mw-whatlinkshere-list').find_all('li'))
     return {
         'name': who_is,
+        'born': birthdate,
         'died': death_date,
         'description': descript,
         'occupations': jobs,
