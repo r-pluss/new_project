@@ -1,7 +1,7 @@
 #creating a large body of data from existing open data sources 
 
 import bs4
-import redis
+#import redis
 import requests
 
 #initial data source
@@ -11,12 +11,22 @@ wiki_page = requests.get(url)
 if not wiki_page.ok:
     raise ValueError('Unable to get initial data from wikidata.org - {0} : {1}'.format(wiki_page.status_code, wiki_page.reason))
 html = bs4.BeautifulSoup(wiki_page.content, 'lxml')
+
+#for testing only, will be removed soon
+test_results = []
+
+
 for item in hmtl.find(id = 'mw-whatlinkshere-list').find_all('li'):
+    if len(test_results) >= 50:
+        break
     link = item.find('a').get('href')
     data = process(link)
     if data is not None:
         #save the results
-        persist(data)
+        #persist(data)
+        
+        #for testing only
+        test_results.append(data)
     
     
 def process(url):
