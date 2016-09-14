@@ -77,7 +77,7 @@ html = bs4.BeautifulSoup(wiki_page.content, 'lxml')
 test_results = []
 
 
-for item in hmtl.find(id = 'mw-whatlinkshere-list').find_all('li'):
+for item in html.find(id = 'mw-whatlinkshere-list').find_all('li'):
     if len(test_results) >= 50:
         break
     link = item.find('a').get('href')
