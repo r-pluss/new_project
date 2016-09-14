@@ -49,7 +49,7 @@ def process(url):
     #see if there's an image to use
     img_url = html.find(id = 'P18').find('a', class_ = 'extiw')['href']
     if img_url[0:2] == '//':
-        img_url = 'http:' += img_url
+        img_url = 'http:' + img_url
     #get the link for the person's wikipedia entry
     wiki_link = html.find(class_ = 'wikibase-entityview-side').find('a', hreflang = 'en')['href']
     #try to generate a ranking index value
