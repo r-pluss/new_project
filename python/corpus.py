@@ -2,14 +2,16 @@
 
 import bs4
 import datetime
+import re
 #import redis
 import requests
 
+test_limit = 30
 
 def process(url):
     wiki_page = requests.get("https://www.wikidata.org{0}".format(url))
     if not wiki_page.ok:
-        raise ValueError('Unable to get initial data from wikidata.org - {0} : {1}'.format(wiki_page.status_code, wiki_page.reason))
+        raise ValueError('Unable to get data from wikidata.org - {0} : {1}'.format(wiki_page.status_code, wiki_page.reason))
     html = bs4.BeautifulSoup(wiki_page.content, 'lxml')
     #get the date of death
     try:
@@ -44,7 +46,7 @@ def process(url):
     if not wiki_page_main.ok:
         return
     main_html = bs4.BeautifulSoup(wiki_page_main.content, 'lxml')
-    links_url = 'https://en.wikipedia.org' + main_html.find(id = 't-whatlinkshere').find('a')['href'] + "?limit=2000"
+    links_url = 'https://en.wikipedia.org' + main_html.find(id = 't-whatlinkshere').find('a')['href'] + "?limit=3000"
     wiki_links_page = requests.get(links_url)
     if not wiki_links_page.ok:
         return
@@ -77,10 +79,32 @@ def convert_date(date):
 def lifespan_days(born, died):
     return (died - born).days
 
-
+def gather_data(html):
+    for item in html.find(id = 'mw-whatlinkshere-list').find_all('li'):
+        if len(test_results) >= test_limit:
+            break
+        link = item.find('a').get('href')
+        data = process(link)
+        if data is not None:
+            try:
+                data['days_alive'] = lifespan_days(convert_date(data['born']), convert_date(data['died']))
+                test_results.append(data)
+            except ValueError:
+                pass
+            
+def get_next_page(html):
+    url = "https://wikidata.org{0}".format(
+        html.find(id = 'mw-content-text').find('a', string = re.compile("next\s[0-9]+")).get('href')
+    )
+    page = requests.get(url)
+    if page.ok:
+        return bs4.BeautifulSoup(page.content, 'lxml')
+    else:
+        raise ValueError('Unable to get additional data - {0} : {1}'.format(page.status_code, page.reason))
 
 #initial data source
 url = "https://www.wikidata.org/w/index.php?title=Special:WhatLinksHere/Property:P570&limit=500"
+
 
 wiki_page = requests.get(url)
 if not wiki_page.ok:
@@ -90,20 +114,8 @@ html = bs4.BeautifulSoup(wiki_page.content, 'lxml')
 #for testing only, will be removed soon
 test_results = []
 
-
-for item in html.find(id = 'mw-whatlinkshere-list').find_all('li'):
-    if len(test_results) >= 20:
-        break
-    link = item.find('a').get('href')
-    data = process(link)
-    if data is not None:
-        #save the results
-        #persist(data)
-        try:
-            data['days_alive'] = lifespan_days(convert_date(data['born']), convert_date(data['died']))
-            #for testing only
-            test_results.append(data)
-        except ValueError:
-            pass
-        
+gather_data(html)
+while(len(test_results) < test_limit):
+    html = get_next_page(html)
+    gather_data(html)
 
