@@ -3,6 +3,7 @@
 import bs4
 import datetime
 import re
+#import threading
 #import redis
 import requests
 
@@ -38,6 +39,8 @@ def process(url):
     img_url = html.find(id = 'P18').find('a', class_ = 'extiw')['href']
     if img_url[0:2] == '//':
         img_url = 'http:' + img_url
+    img = get_image(img_url)
+    
     #get the link for the person's wikipedia entry
     wiki_link = html.find(class_ = 'wikibase-entityview-side').find('a', hreflang = 'en')['href']
     #try to generate a ranking index value
@@ -58,7 +61,9 @@ def process(url):
         'died': death_date,
         'description': descript,
         'occupations': jobs,
-        'image_url': img_url,
+        'image_url': img['img_url'] if img else None,
+        'image_height': img['img_height'] if img else None,
+        'image_width': img['img_width'] if img else None,
         'fame': link_count
     }
 
@@ -101,6 +106,19 @@ def get_next_page(html):
         return bs4.BeautifulSoup(page.content, 'lxml')
     else:
         raise ValueError('Unable to get additional data - {0} : {1}'.format(page.status_code, page.reason))
+        
+def get_image(url):
+    page = requests.get(url)
+    if page.ok:
+        html = bs4.BeautifulSoup(page.content, 'lxml')
+        img = html.find(id = 'file').find('img')
+        return {
+            'img_url': img['src'],
+            'img_height': img['height'],
+            'img_width': img['width']
+        }
+    else:
+        return None
 
 #initial data source
 url = "https://www.wikidata.org/w/index.php?title=Special:WhatLinksHere/Property:P570&limit=500"
