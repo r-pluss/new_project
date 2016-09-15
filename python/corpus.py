@@ -92,16 +92,18 @@ test_results = []
 
 
 for item in html.find(id = 'mw-whatlinkshere-list').find_all('li'):
-    if len(test_results) >= 50:
+    if len(test_results) >= 20:
         break
     link = item.find('a').get('href')
     data = process(link)
     if data is not None:
         #save the results
         #persist(data)
+        try:
+            data['days_alive'] = lifespan_days(convert_date(data['born']), convert_date(data['died']))
+            #for testing only
+            test_results.append(data)
+        except ValueError:
+            pass
         
-        #for testing only
-        test_results.append(data)
-    
-    
 
